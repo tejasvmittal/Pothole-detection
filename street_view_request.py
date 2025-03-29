@@ -1,6 +1,6 @@
 import google_streetview.api
 
-key = "AIzaSyCjqJtul_qzWxBbfVA1QCwqvonUPBUeUkU"
+key = ""
 
 
 def get(lat, long, heading, pitch):
