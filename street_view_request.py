@@ -1,6 +1,9 @@
 import google_streetview.api
+import json
 
-key = ""
+with open("config.json") as f:
+    data = json.load(f)
+    key = data['GOOGLE_API_KEY']
 
 
 def get(lat, long, heading, pitch):
