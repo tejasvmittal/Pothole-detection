@@ -7,6 +7,7 @@ var map = L.map('map', {
 var mapId = document.getElementById('map')
 var geocoder = L.Control.geocoder({defaultMarkGeocode: false}).addTo(map);
 var markers = {};
+let markerID = 0;
 
 
 // ----------------Base Maps--------------------------------------------
@@ -79,11 +80,16 @@ function addMarker(latlng, name=null){
     }
     const popupText = name || `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
     const marker = L.marker(latlng).addTo(map).bindPopup(popupText).openPopup();
-    markers[latlng] = marker;
+    const id = `marker-${markerID++}`;
+    markers[id] = {marker: marker, lat: latlng.lat, lng: latlng.lng};
+
     marker.on('dblclick', function(){
         map.removeLayer(marker);
-        delete markers[latlng];
+        delete markers[id];
     });
+    if (Object.keys(markers).length == 2){
+        sendCoordinates();
+    }
 }
 // Add marker by clicking or searching
 map.on('click', function(e){
@@ -107,5 +113,31 @@ map.on('mousemove', function(e){
     $('.coordinates').html(`Lat: ${lat}, Lng: ${lng}`);
 });
 
+
+// function to send marker coordinates through Flask Server
+function sendCoordinates(){
+    const keys = Object.keys(markers);
+    const point1 = markers[keys[0]];
+    const point2 = markers[keys[1]];
+    fetch('http://127.0.0.1:5000/get-route', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            lat1: point1.lat,
+            lng1: point1.lng,
+            lat2: point2.lat,
+            lng2: point2.lng
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Route received from Flask:', data);
+    })
+    .catch(error => {
+        console.error("Error while sending coordinates:", error);
+    });
+}
 
 

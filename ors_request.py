@@ -16,11 +16,9 @@ def get(start_lat, start_long, end_lat, end_long):
     # decode_polyline needs the geometry only
     route_params = {
     "coordinates": coords,
+    "profile": 'driving-car',
     "format": "geojson",
-    "alternative_routes": {
-        "target_count": 2,  
-        "weight_factor": 1.2  # Adjusts alternative route sensitivity (higher = more variation)
-    }
+    "instructions": False
 }
     routes = client.directions(**route_params)
     all_routes_coordinates = []
@@ -46,4 +44,6 @@ def calculate_heading(lat1, lon1, lat2, lon2):
 
 
 if __name__ == '__main__':
-    print(get(33.763989, -118.165501, 33.770049, -118.193658))
+    r = get(33.763989, -118.165501, 33.770049, -118.193658)
+    flattened_coords = [coord for route in r for coord in route]
+    print(flattened_coords)
