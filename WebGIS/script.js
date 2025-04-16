@@ -31,6 +31,24 @@ var dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{
 // -----------------------------------------------------------------------------------------
 
 
+// create generic alert handler
+function handleAlerts(alertID, alertType, message){
+    const alertObject = `<div id = "${alertID}" class="alert alert-${alertType} alert-dismissible fade show" role="alert">${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+      </button>
+    </div>`;
+    const container = document.getElementById('alert-container');
+    container.insertAdjacentHTML('beforeend', alertObject);
+    setTimeout(() => {
+      const alertEl = document.getElementById(alertID);
+      if (alertEl) {
+        alertEl.classList.remove('show');
+        alertEl.classList.add('fade');
+        setTimeout(() => alertEl.remove(), 250); 
+      }
+    }, 3000);
+}
+
 // add layer control
 var baseLayer = {
     'Default': osm,
@@ -53,9 +71,12 @@ function displayFullScreen(){
     }
 }
 
-
 // Add and remove marker on the map
 function addMarker(latlng, name=null){
+    if (Object.keys(markers).length == 2){
+        handleAlerts('alert-markers', 'warning', 'Please remove a marker first. Marker limit: 2');
+        return;
+    }
     const popupText = name || `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
     const marker = L.marker(latlng).addTo(map).bindPopup(popupText).openPopup();
     markers[latlng] = marker;
@@ -64,7 +85,6 @@ function addMarker(latlng, name=null){
         delete markers[latlng];
     });
 }
-
 // Add marker by clicking or searching
 map.on('click', function(e){
     addMarker(e.latlng);
@@ -86,4 +106,6 @@ map.on('mousemove', function(e){
     var lng = e.latlng.lng.toFixed(4);
     $('.coordinates').html(`Lat: ${lat}, Lng: ${lng}`);
 });
+
+
 
