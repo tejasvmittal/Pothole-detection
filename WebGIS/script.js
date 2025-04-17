@@ -8,6 +8,7 @@ var mapId = document.getElementById('map')
 var geocoder = L.Control.geocoder({defaultMarkGeocode: false}).addTo(map);
 var markers = {};
 let markerID = 0;
+var currentRoute = null;
 
 
 // ----------------Base Maps--------------------------------------------
@@ -33,7 +34,7 @@ var dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{
 
 
 // create generic alert handler
-function handleAlerts(alertID, alertType, message){
+function handleAlerts(alertID, alertType, message, timeOut){
     const alertObject = `<div id = "${alertID}" class="alert alert-${alertType} alert-dismissible fade show" role="alert">${message}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
       </button>
@@ -47,7 +48,7 @@ function handleAlerts(alertID, alertType, message){
         alertEl.classList.add('fade');
         setTimeout(() => alertEl.remove(), 250); 
       }
-    }, 3000);
+    }, timeOut);
 }
 
 // add layer control
@@ -75,7 +76,7 @@ function displayFullScreen(){
 // Add and remove marker on the map
 function addMarker(latlng, name=null){
     if (Object.keys(markers).length == 2){
-        handleAlerts('alert-markers', 'warning', 'Please remove a marker first. Marker limit: 2');
+        handleAlerts('alert-markers', 'warning', 'Please remove a marker first. Marker limit: 2', 3000);
         return;
     }
     const popupText = name || `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
@@ -86,6 +87,10 @@ function addMarker(latlng, name=null){
     marker.on('dblclick', function(){
         map.removeLayer(marker);
         delete markers[id];
+        if (currentRoute){
+            map.removeLayer(currentRoute);
+            currentRoute = null;
+        }
     });
     if (Object.keys(markers).length == 2){
         sendCoordinates();
@@ -133,11 +138,23 @@ function sendCoordinates(){
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Route received from Flask:', data);
+        console.log('Received from Flask:', data.route);
+        if (data.route == 'ORS ERROR'){
+            handleAlerts('alert-out-of-bounds', 'warning', 'Marker too far away. Replace the marker closer to a road', 5000);
+        }
+        else if (data.route){
+            displayRoute(data.route);
+        }
     })
     .catch(error => {
         console.error("Error while sending coordinates:", error);
     });
 }
 
+
+// function to display route on map
+function displayRoute(routeCoordinates){
+    routeCoordinates = routeCoordinates.map(coord => [coord[1], coord[0]]);
+    currentRoute = L.polyline(routeCoordinates, {color: 'blue'}).addTo(map);
+}
 

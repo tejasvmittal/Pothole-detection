@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  
+from flask_cors import CORS 
+import openrouteservice 
 import ors_request
 
 app = Flask(__name__)
@@ -13,9 +14,12 @@ def get_route():
     lng1 = data.get('lng1')
     lat2 = data.get('lat2')
     lng2 = data.get('lng2')
-    route_coordinates = ors_request.get(lat1, lng1, lat2, lng2)
-    flattened_coords = [coord for route in route_coordinates for coord in route]
-    return jsonify({'route': flattened_coords})
+    try:
+        route_coordinates = ors_request.get(lat1, lng1, lat2, lng2)
+        flattened_coords = [coord for route in route_coordinates for coord in route]
+        return jsonify({'route': flattened_coords})
+    except openrouteservice.exceptions.ApiError:
+        return jsonify({'route': 'ORS ERROR'})
 
 if __name__ == '__main__':
     app.run(debug=True)
