@@ -4,6 +4,23 @@ var map = L.map('map', {
   minZoom: 6,
   maxZoom: 16
 }); 
+
+//  get user location: Accept or Deny
+if (navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+        function(position){
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            console.log(userLat, userLng);
+            map.setView([userLat, userLng], 10);
+        },
+        function(error){
+            console.error("Error getting user location", error);
+        }
+    )
+} else{
+    console.error("Geolocation is not supported by this browser");
+}
 var mapId = document.getElementById('map')
 var geocoder = L.Control.geocoder({defaultMarkGeocode: false}).addTo(map);
 var markers = {};
@@ -156,5 +173,6 @@ function sendCoordinates(){
 function displayRoute(routeCoordinates){
     routeCoordinates = routeCoordinates.map(coord => [coord[1], coord[0]]);
     currentRoute = L.polyline(routeCoordinates, {color: 'blue'}).addTo(map);
+    map.fitBounds(currentRoute.getBounds());
 }
 
