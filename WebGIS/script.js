@@ -107,6 +107,7 @@ function addMarker(latlng, name=null){
         if (currentRoute){
             map.removeLayer(currentRoute);
             currentRoute = null;
+            document.getElementById('detect-pothole-popup').style.display = 'none';
         }
     });
     if (Object.keys(markers).length == 2){
@@ -174,5 +175,11 @@ function displayRoute(routeCoordinates){
     routeCoordinates = routeCoordinates.map(coord => [coord[1], coord[0]]);
     currentRoute = L.polyline(routeCoordinates, {color: 'blue'}).addTo(map);
     map.fitBounds(currentRoute.getBounds());
+    document.getElementById('detect-pothole-popup').style.display = 'block';
+}
+
+// function to send coordinates to YOLO and get back pothole detections
+function detectPotholes(){
+
 }
 
